@@ -23,6 +23,8 @@
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
+		"scan:published": "node scripts/scan-published.mjs",
+		"verify:registration": "node scripts/verify-registration.mjs",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease"
 	},

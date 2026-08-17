@@ -13,6 +13,10 @@ concurrency:
   group: ci-${{ github.ref }}
   cancel-in-progress: true
 
+# Least privilege for both jobs: neither writes anything back to the repo.
+permissions:
+  contents: read
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -23,45 +27,54 @@ jobs:
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          # Pinned rather than `lts/*`: the floating alias moves under us, and n8n's
+          # supported range is what has to be tracked here, not npm's newest LTS.
+          node-version: '22'
           cache: 'npm'
 
       - name: Install dependencies
         run: 'npm ci'
 
-      # `n8n-node lint` applies the same rulesets as the verification scanner
-      # (`configs.recommended` + `community` + `credentials` + `nodes`, plus
-      # `no-console`). It is the pre-publication half of the scan gate below.
+      # `n8n-node lint` is a superset of the scanner on general JS/TS rules and a
+      # SUBSET on the community ones: it pins @n8n/eslint-plugin-community-nodes
+      # 0.28.0 where the scanner pins 0.29.0. Both run, for that reason.
       - name: Run lint
         run: 'npm run lint'
+
+      # The scanner's lint leg, on the exact ruleset verification uses. Installed
+      # into a temp prefix rather than added to devDependencies: it would drag
+      # eslint, typescript and axios into the dev tree for one step.
+      - name: Verification lint (scanner ruleset)
+        run: |
+          npm install --silent --prefix "$RUNNER_TEMP/scan" --no-save @n8n/scan-community-package@0.32.0
+          node scripts/scan-source.mjs "$RUNNER_TEMP/scan/node_modules/@n8n/scan-community-package/scanner/scanner.mjs"
 
       - name: Run build
         run: 'npm run build'
 
-  # PHASE 6 GATE — deliberately manual, and expected to fail until the package
-  # is published.
+  # PHASE 6 GATE — deliberately manual, and expected to fail until the package is
+  # published.
   #
   # `@n8n/scan-community-package` accepts only a *published* package name: it
   # resolves the package from the npm registry and checks its provenance
-  # attestation before linting anything. There is no local-directory mode, so
-  # this cannot gate a pre-publication commit; `npm run lint` above covers the
-  # lint half of what the scanner does.
+  # attestation before linting anything. There is no local-directory mode, so this
+  # cannot gate a pre-publication commit.
   #
-  # The `grep` is not decoration: the scanner's CLI prints ❌ and still exits 0
-  # on a failed scan (`process.exit(1)` is reached only from its catch block),
-  # so a bare `run:` step would be green no matter what the scan concluded.
+  # The scan runs through scripts/scan-published.mjs rather than the scanner's own
+  # CLI, which exits 0 even when the scan fails and prints ✅ progress lines before
+  # a ❌ verdict. The script is the thing that turns the verdict into an exit code.
   scan:
     name: Verification scan (published package)
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
 
     steps:
+      - uses: actions/checkout@v4
+
       - name: Set up Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 'lts/*'
+          node-version: '22'
 
       - name: Scan published package
-        run: |
-          npx -y @n8n/scan-community-package n8n-nodes-youex | tee scan.log
-          grep -q '✅' scan.log
+        run: 'npm run scan:published'

@@ -43,9 +43,13 @@ credentials.
 3. Copy the key. **It is shown exactly once** — YouEx stores only a hash of it.
 4. In n8n, create a **YouEx API** credential:
    - **API Key** — the key you just copied (`yx-live-…` in production, `yx-test-…` elsewhere).
-   - **Base URL** — your YouEx instance, `https://app.youex.ai` by default. No trailing slash.
-5. Click **Test**. A green result means the key is valid, active, and its workspace has the integration
-   enabled.
+   - **Base URL** — your YouEx instance, `https://app.youex.ai` by default. A trailing slash is ignored.
+5. Click **Test**. A green result means the request reached the YouEx integrations API and that your key is
+   valid, active, and belongs to a workspace with the integration enabled.
+
+**What Test does not cover:** it calls an endpoint that requires authentication but no particular scope, so
+a key with the wrong scopes still tests green. Operations then fail with `403 insufficient_scope` at run
+time. Check the scopes on the key itself if an operation fails while the credential tests fine.
 
 ### Scopes
 
