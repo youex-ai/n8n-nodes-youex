@@ -1,25 +1,29 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
-import { userDescription } from './resources/user';
-import { companyDescription } from './resources/company';
+import { workspaceDescription } from './resources/workspace';
 
-export class Example implements INodeType {
+export class YouEx implements INodeType {
 	description: INodeTypeDescription = {
-		displayName: 'Example',
-		name: 'example',
-		icon: { light: 'file:example.svg', dark: 'file:example.dark.svg' },
+		displayName: 'YouEx',
+		name: 'youEx',
+		icon: { light: 'file:youex.svg', dark: 'file:youex.dark.svg' },
 		group: ['transform'],
 		version: 1,
 		subtitle: '={{$parameter["operation"] + ": " + $parameter["resource"]}}',
-		description: 'Interact with the Example API',
+		description: 'Consume the YouEx CRM API',
 		defaults: {
-			name: 'Example',
+			name: 'YouEx',
 		},
 		usableAsTool: true,
 		inputs: [NodeConnectionTypes.Main],
 		outputs: [NodeConnectionTypes.Main],
-		credentials: [],
+		credentials: [
+			{
+				name: 'youExApi',
+				required: true,
+			},
+		],
 		requestDefaults: {
-			baseURL: 'https://api.example.com',
+			baseURL: '={{$credentials.baseUrl}}/api/integrations/v1',
 			headers: {
 				Accept: 'application/json',
 				'Content-Type': 'application/json',
@@ -33,18 +37,13 @@ export class Example implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
-						name: 'User',
-						value: 'user',
-					},
-					{
-						name: 'Company',
-						value: 'company',
+						name: 'Workspace',
+						value: 'workspace',
 					},
 				],
-				default: 'user',
+				default: 'workspace',
 			},
-			...userDescription,
-			...companyDescription,
+			...workspaceDescription,
 		],
 	};
 }

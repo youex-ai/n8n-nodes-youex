@@ -11,7 +11,7 @@
 # provenance flag passed by `npm run release` in CI, and the publish step will
 # fail. Check the version installed in this project with:
 #
-#   {{packageManager.name}} list @n8n/node-cli
+#   npm list @n8n/node-cli
 #
 # To upgrade, add @n8n/node-cli@latest as a dev dependency using your package manager.
 #
@@ -47,7 +47,7 @@
 #
 # Run the following command locally to start an interactive release:
 #
-#   {{packageManager.name}} run release
+#   npm run release
 #
 # This will lint, build, prompt for a version bump, update the changelog,
 # commit, tag, and push — which triggers this workflow to publish to npm.
@@ -79,10 +79,10 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-          cache: '{{packageManager.name}}'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: '{{packageManager.name}} {{packageManager.installCommand}}'
+        run: 'npm ci'
 
       - name: Release
         # Publishes to npm with a provenance attestation (requires id-token: write above).
@@ -94,6 +94,6 @@ jobs:
         #   .npmrc here before publishing.
         run: |
           [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
-          {{packageManager.name}} run release
+          npm run release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}

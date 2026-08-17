@@ -5,6 +5,8 @@ on:
   push:
     branches:
       - main
+  # The `scan` job below only runs on a manual dispatch — see its comment.
+  workflow_dispatch:
 
 # Cancel in-progress runs for the same branch/PR to avoid wasting CI minutes.
 concurrency:
@@ -22,13 +24,44 @@ jobs:
         uses: actions/setup-node@v4
         with:
           node-version: 'lts/*'
-          cache: '{{packageManager.name}}'
+          cache: 'npm'
 
       - name: Install dependencies
-        run: '{{packageManager.name}} {{packageManager.installCommand}}'
+        run: 'npm ci'
 
+      # `n8n-node lint` applies the same rulesets as the verification scanner
+      # (`configs.recommended` + `community` + `credentials` + `nodes`, plus
+      # `no-console`). It is the pre-publication half of the scan gate below.
       - name: Run lint
-        run: '{{packageManager.name}} run lint'
+        run: 'npm run lint'
 
       - name: Run build
-        run: '{{packageManager.name}} run build'
+        run: 'npm run build'
+
+  # PHASE 6 GATE — deliberately manual, and expected to fail until the package
+  # is published.
+  #
+  # `@n8n/scan-community-package` accepts only a *published* package name: it
+  # resolves the package from the npm registry and checks its provenance
+  # attestation before linting anything. There is no local-directory mode, so
+  # this cannot gate a pre-publication commit; `npm run lint` above covers the
+  # lint half of what the scanner does.
+  #
+  # The `grep` is not decoration: the scanner's CLI prints ❌ and still exits 0
+  # on a failed scan (`process.exit(1)` is reached only from its catch block),
+  # so a bare `run:` step would be green no matter what the scan concluded.
+  scan:
+    name: Verification scan (published package)
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 'lts/*'
+
+      - name: Scan published package
+        run: |
+          npx -y @n8n/scan-community-package n8n-nodes-youex | tee scan.log
+          grep -q '✅' scan.log
