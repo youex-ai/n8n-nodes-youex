@@ -95,7 +95,18 @@ jobs:
         # Option B (token): set NPM_TOKEN in repo secrets — it is written to
         #   .npmrc here before publishing.
         run: |
-          [ -n "$NPM_TOKEN" ] && npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          # Both auth paths stay supported, but which one was taken has to be
+          # visible. Without this the token being absent is silent: the `&&`
+          # short-circuits, the run carries on through lint, build and packing,
+          # and only dies at the very end with a bare ENEEDAUTH that says
+          # nothing about the secret.
+          if [ -n "$NPM_TOKEN" ]; then
+            echo "Authenticating to npm with the NPM_TOKEN secret."
+            npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
+          else
+            echo "::warning::NPM_TOKEN is empty or unset — falling back to npm Trusted Publishing (OIDC)."
+            echo "::warning::If this run ends in ENEEDAUTH, either the repository secret is missing or misnamed (it must be exactly NPM_TOKEN, at repository scope), or trusted publishing is not configured for this package on npmjs.com."
+          fi
           npm run release
         env:
           NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
