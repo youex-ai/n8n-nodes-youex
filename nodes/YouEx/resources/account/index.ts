@@ -20,9 +20,9 @@ const showOnlyForAccounts = { resource: ['account'] };
  *   enrichmentData, researchStatus, pendingResearchReservation, researchedAt,
  *   researchReport, researchExecutiveSummary, researchSources
  *
- * Two of those are usage reservations tied to billing. Do not add them back: the
- * backend still accepts them from a direct caller, and hardening it there is
- * tracked as follow-up because it changes the API Zapier consumes.
+ * Two of those are usage reservations tied to billing. Do not add them back:
+ * the backend now rejects them outright, so re-adding one here would ship a
+ * parameter whose every use is a 400.
  */
 const accountFields: INodeProperties[] = [
 	{
