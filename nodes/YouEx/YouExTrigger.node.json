@@ -1,0 +1,18 @@
+{
+	"node": "n8n-nodes-youex.youExTrigger",
+	"nodeVersion": "1.0",
+	"codexVersion": "1.0",
+	"categories": ["Sales"],
+	"resources": {
+		"credentialDocumentation": [
+			{
+				"url": "https://github.com/youex-ai/n8n-nodes-youex?tab=readme-ov-file#credentials"
+			}
+		],
+		"primaryDocumentation": [
+			{
+				"url": "https://github.com/youex-ai/n8n-nodes-youex?tab=readme-ov-file"
+			}
+		]
+	}
+}

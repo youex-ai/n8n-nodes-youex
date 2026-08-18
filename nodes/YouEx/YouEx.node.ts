@@ -1,4 +1,8 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
+import { accountDescription } from './resources/account';
+import { contactDescription } from './resources/contact';
+import { leadDescription } from './resources/lead';
+import { opportunityDescription } from './resources/opportunity';
 import { workspaceDescription } from './resources/workspace';
 
 export class YouEx implements INodeType {
@@ -50,12 +54,32 @@ export class YouEx implements INodeType {
 				noDataExpression: true,
 				options: [
 					{
+						name: 'Account',
+						value: 'account',
+					},
+					{
+						name: 'Contact',
+						value: 'contact',
+					},
+					{
+						name: 'Lead',
+						value: 'lead',
+					},
+					{
+						name: 'Opportunity',
+						value: 'opportunity',
+					},
+					{
 						name: 'Workspace',
 						value: 'workspace',
 					},
 				],
-				default: 'workspace',
+				default: 'lead',
 			},
+			...accountDescription,
+			...contactDescription,
+			...leadDescription,
+			...opportunityDescription,
 			...workspaceDescription,
 		],
 	};

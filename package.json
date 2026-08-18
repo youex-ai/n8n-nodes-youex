@@ -23,6 +23,7 @@
 		"dev": "n8n-node dev",
 		"lint": "n8n-node lint",
 		"lint:fix": "n8n-node lint --fix",
+		"test": "node --test scripts/test-signature.mjs",
 		"scan:published": "node scripts/scan-published.mjs",
 		"verify:registration": "node scripts/verify-registration.mjs",
 		"release": "n8n-node release",
@@ -38,7 +39,8 @@
 			"dist/credentials/YouExApi.credentials.js"
 		],
 		"nodes": [
-			"dist/nodes/YouEx/YouEx.node.js"
+			"dist/nodes/YouEx/YouEx.node.js",
+			"dist/nodes/YouEx/YouExTrigger.node.js"
 		]
 	},
 	"devDependencies": {

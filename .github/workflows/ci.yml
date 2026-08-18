@@ -52,6 +52,17 @@ jobs:
       - name: Run build
         run: 'npm run build'
 
+      # After the build on purpose: the suite imports the *compiled* signature
+      # verifier, so what is tested is what ships. `node --test` only, no dev
+      # dependency added.
+      #
+      # `npm run verify:registration` is deliberately not here: it drives n8n's
+      # own loader and therefore needs an `n8n-core` on disk, which locally comes
+      # from the npx cache `npm run dev` populates. Installing an unpinned one per
+      # CI run buys little for its weight. It stays a local gate.
+      - name: Run tests
+        run: 'npm test'
+
   # PHASE 6 GATE — deliberately manual, and expected to fail until the package is
   # published.
   #
