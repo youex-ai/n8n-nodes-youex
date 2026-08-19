@@ -89,12 +89,23 @@ jobs:
       # independent of whichever npm the runner image happens to ship.
       - name: Use an npm that can do trusted publishing
         run: |
-          npm install -g npm@latest
-          node --version
-          npm --version
+          # Pinned to the 11.x line rather than `latest`: OIDC needs >= 11.5.1,
+          # and `latest` is free to roll onto a new major whose lockfile
+          # expectations differ from the one committed here.
+          npm install -g 'npm@^11.5.1'
+          echo "::notice::node $(node --version), npm $(npm --version)"
 
       - name: Install dependencies
-        run: 'npm ci'
+        run: |
+          set +e
+          npm ci 2>&1 | tee /tmp/ci.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "::error::npm ci failed with exit code $status:"
+            grep -E "npm error" /tmp/ci.log | head -n 8               | while IFS= read -r line; do echo "::error::$line"; done
+            exit "$status"
+          fi
 
       - name: Release
         # Publishes to npm with a provenance attestation (requires id-token: write above).
