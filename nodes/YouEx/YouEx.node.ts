@@ -1,4 +1,5 @@
 import { NodeConnectionTypes, type INodeType, type INodeTypeDescription } from 'n8n-workflow';
+import { assertApiResponse } from './shared/response';
 import { accountDescription } from './resources/account';
 import { contactDescription } from './resources/contact';
 import { leadDescription } from './resources/lead';
@@ -75,6 +76,11 @@ export class YouEx implements INodeType {
 					},
 				],
 				default: 'lead',
+				// Hung off `resource` because every operation shows it, so this runs
+				// once per response without being repeated 21 times. It sits before the
+				// operations' own `rootProperty` unwrapping, which is the order that
+				// matters: an HTML body has no `records` to unwrap.
+				routing: { output: { postReceive: [assertApiResponse] } },
 			},
 			...accountDescription,
 			...contactDescription,
