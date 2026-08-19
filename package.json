@@ -15,7 +15,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/youex-ai/n8n-nodes-youex.git"
+		"url": "git+https://github.com/youex-ai/n8n-nodes-youex.git"
 	},
 	"scripts": {
 		"build": "n8n-node build",
@@ -28,6 +28,9 @@
 		"verify:registration": "node scripts/verify-registration.mjs",
 		"release": "n8n-node release",
 		"prepublishOnly": "n8n-node prerelease"
+	},
+	"publishConfig": {
+		"access": "public"
 	},
 	"files": [
 		"dist",
