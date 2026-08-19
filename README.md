@@ -12,6 +12,7 @@ automation platform.
 [Operations](#operations)
 [Trigger](#trigger)
 [Credentials](#credentials)
+[Example workflow](#example-workflow)
 [Compatibility](#compatibility)
 [Resources](#resources)
 [Version history](#version-history)
@@ -101,6 +102,15 @@ credentials.
 5. Click **Test**. A green result means the key is valid and active, its workspace has the integration
    enabled, and the Base URL really points at the YouEx integrations API.
 
+**Pointing at a YouEx on the same machine?** Use `http://127.0.0.1:5000`, not `http://localhost:5000`. Node
+resolves `localhost` to IPv6 first, and a server listening only on IPv4 refuses the connection — the node
+reports it as the service being offline, which is a confusing way to learn about a DNS preference.
+
+**Get the Base URL wrong and Test is the thing that tells you.** A YouEx address without the integrations API
+answers with the web app instead — an HTML page, with a `200`. The credential test rejects that, but the
+operations themselves do not, so a workflow built on an untested credential can end up with markup where it
+expected records. Press Test.
+
 ### Scopes
 
 | Scope | Needed for |
@@ -124,6 +134,43 @@ way, the key is valid but missing the scope in the table above.
 ### Rate limits
 
 600 requests per minute per key. A `429` is retryable, and the node says so rather than failing opaquely.
+
+## Example workflow
+
+Sync every new lead into a Slack channel, and keep a daily digest of the whole pipeline.
+
+**Trigger half** — two nodes:
+
+1. **YouEx Trigger** — Entity `Lead`, Event `Created`. Activating the workflow registers the webhook with
+   YouEx; deactivating removes it. Deliveries are signature-checked before the workflow runs.
+2. **Slack** — post `{{ $json.record.name }} ({{ $json.record.email }})` to `#sales`.
+
+The trigger emits one item per event, shaped like this:
+
+```json
+{
+  "event_id": "3f2a…",
+  "record_id": "6a86…",
+  "entity_type": "lead",
+  "event_type": "created",
+  "occurred_at": "2026-08-19T17:04:11.000Z",
+  "changed_fields": [],
+  "record": { "_id": "6a86…", "name": "Ada Lovelace", "email": "ada@example.com", "status": "New" }
+}
+```
+
+Note `entity_type` is `company` for accounts — that is the wire value; the node's own parameter says
+`Account`.
+
+**Digest half** — three nodes:
+
+1. **Schedule Trigger** — every morning.
+2. **YouEx** — Resource `Lead`, Operation `Get Many`, **Return All** on, Filters → Status `Hot`. The node
+   follows YouEx's cursor for you and emits one item per record, however many pages that takes.
+3. **Slack** — summarise the items.
+
+A lead created in YouEx reaches the first workflow within seconds. Bear in mind the caveat above: for
+**Lead**, `Created` waits on enrichment, so use `Updated` if you need immediacy.
 
 ## Compatibility
 
