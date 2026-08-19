@@ -15,6 +15,12 @@
  * So the only trustworthy signal is the verdict line itself, matched whole, with
  * ❌ anywhere in the output treated as failure.
  *
+ * PLATFORM: run this on Linux, i.e. through the `scan` job in ci.yml.
+ * On Windows the scanner's source leg dies inside its own tar invocation with a
+ * mangled temp path (`C\:\Users\...`), so the run reports "Could not fetch
+ * source" no matter what the package looks like. The provenance leg still passes
+ * there, so a Windows run is only good for checking that much.
+ *
  * Usage: node scripts/scan-published.mjs [package-name[@version]]
  */
 
