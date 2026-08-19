@@ -25,14 +25,15 @@
 #        Repository name:  <your-repo-name>
 #        Workflow name:    publish.yml
 #        Environment:      (leave blank unless you use GitHub Environments)
-#   4. Leave the NPM_TOKEN secret unset in this repository. GitHub's OIDC
+#   4. Leave the N8N_AT_YOUEX secret unset in this repository. GitHub's OIDC
 #      token is used instead — no secret ever touches your repo settings.
 #
 # Option B — npm Automation Token (fallback):
 #   1. On npmjs.com: Access Tokens → Generate New Token → Granular Access Token.
 #      Scope it to this package with "Read and write" publish permission.
 #   2. In GitHub: Settings → Secrets and variables → Actions → New secret.
-#      Name it NPM_TOKEN and paste the token value.
+#      Name it N8N_AT_YOUEX and paste the token value. The name is arbitrary —
+#      it only has to match the `secrets.` reference in the Release step below.
 #
 # Both options work with --provenance. Provenance is signed by GitHub's OIDC
 # infrastructure regardless of how npm authentication is handled.
@@ -90,9 +91,9 @@ jobs:
         # Publishes to npm with a provenance attestation (requires id-token: write above).
         # Lint and build run automatically as part of the release process.
         #
-        # Option A (OIDC): leave NPM_TOKEN unset — the token step is skipped and
+        # Option A (OIDC): leave N8N_AT_YOUEX unset — the token step is skipped and
         #   npm uses the OIDC exchange instead.
-        # Option B (token): set NPM_TOKEN in repo secrets — it is written to
+        # Option B (token): set N8N_AT_YOUEX in repo secrets — it is written to
         #   .npmrc here before publishing.
         run: |
           # Both auth paths stay supported, but which one was taken has to be
@@ -105,8 +106,12 @@ jobs:
             npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
           else
             echo "::warning::NPM_TOKEN is empty or unset — falling back to npm Trusted Publishing (OIDC)."
-            echo "::warning::If this run ends in ENEEDAUTH, either the repository secret is missing or misnamed (it must be exactly NPM_TOKEN, at repository scope), or trusted publishing is not configured for this package on npmjs.com."
+            echo "::warning::If this run ends in ENEEDAUTH, either the repository secret N8N_AT_YOUEX is missing or misnamed, or it is defined at organization or environment scope without access to this repository."
           fi
           npm run release
         env:
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # The repository secret is named N8N_AT_YOUEX; it is mapped onto the
+          # NPM_TOKEN variable the step below reads. Renaming the secret is not
+          # possible in GitHub, and recreating it would mean regenerating the npm
+          # token, since a secret's value cannot be read back.
+          NPM_TOKEN: ${{ secrets.N8N_AT_YOUEX }}
