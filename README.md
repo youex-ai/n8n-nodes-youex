@@ -140,3 +140,4 @@ Tested against n8n 1.x on Node 22. Requires the YouEx integrations API (`/api/in
 |---|---|
 | 0.1.0 | `YouEx API` credential, the `YouEx` node with 21 operations, and the `YouEx Trigger` node with 12 events |
 | 0.1.1 | No functional change. Publishing moved to npm trusted publishing (OIDC), removing the long-lived token from the release path |
+| 0.1.2 | The brand icons, replacing the placeholder artwork |
