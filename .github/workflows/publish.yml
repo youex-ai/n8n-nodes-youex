@@ -111,13 +111,26 @@ jobs:
           # and only dies at the very end with a bare ENEEDAUTH that says
           # nothing about the secret.
           if [ -n "$NPM_TOKEN" ]; then
-            echo "Authenticating to npm with the NPM_TOKEN secret."
+            echo "::notice::Authenticating to npm with the repository token secret."
             npm config set //registry.npmjs.org/:_authToken "$NPM_TOKEN"
           else
-            echo "::warning::NPM_TOKEN is empty or unset — falling back to npm Trusted Publishing (OIDC)."
-            echo "::warning::If this run ends in ENEEDAUTH, either the repository secret N8N_AT_YOUEX is missing or misnamed, or it is defined at organization or environment scope without access to this repository."
+            echo "::notice::No token secret present - relying on npm trusted publishing (OIDC)."
           fi
-          npm run release
+
+          # npm's own failure text is the only thing that identifies which of
+          # npm's several publish policies rejected the release, and reading it
+          # otherwise means opening the run in a browser. Surfacing the tail as
+          # annotations puts it in the API, where tooling and reviewers can see
+          # it without clicking through.
+          set +e
+          npm run release 2>&1 | tee /tmp/release.log
+          status=${PIPESTATUS[0]}
+          set -e
+          if [ "$status" -ne 0 ]; then
+            echo "::error::npm publish failed with exit code $status. Tail of the log:"
+            grep -E "npm error|npm warn|npm notice Publishing" /tmp/release.log | tail -n 12               | while IFS= read -r line; do echo "::error::$line"; done
+            exit "$status"
+          fi
         env:
           # The repository secret is named N8N_AT_YOUEX; it is mapped onto the
           # NPM_TOKEN variable the step below reads. Renaming the secret is not
