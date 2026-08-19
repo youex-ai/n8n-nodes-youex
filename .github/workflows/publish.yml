@@ -74,15 +74,24 @@ jobs:
       contents: read
 
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
 
       - name: Set up Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           # Pinned to match ci.yml: a release must be built on the Node version the
           # package was tested on, not on whatever `lts/*` resolves to that day.
           node-version: '22'
           cache: 'npm'
+
+      # npm's OIDC exchange for trusted publishing needs npm >= 11.5.1, and the
+      # npm bundled with Node 22 is still on 10.x. Upgrading explicitly keeps this
+      # independent of whichever npm the runner image happens to ship.
+      - name: Use an npm that can do trusted publishing
+        run: |
+          npm install -g npm@latest
+          node --version
+          npm --version
 
       - name: Install dependencies
         run: 'npm ci'
