@@ -87,14 +87,13 @@ jobs:
       # npm's OIDC exchange for trusted publishing needs npm >= 11.5.1, and the
       # npm bundled with Node 22 is still on 10.x. Upgrading explicitly keeps this
       # independent of whichever npm the runner image happens to ship.
-      - name: Use an npm that can do trusted publishing
-        run: |
-          # Pinned to the 11.x line rather than `latest`: OIDC needs >= 11.5.1,
-          # and `latest` is free to roll onto a new major whose lockfile
-          # expectations differ from the one committed here.
-          npm install -g 'npm@^11.5.1'
-          echo "::notice::node $(node --version), npm $(npm --version)"
-
+      # `npm ci` runs FIRST, on the npm that ships with the pinned Node. The
+      # committed lockfile is generated on Windows, where npm prunes the
+      # optional platform packages it cannot use, so it lists only the win32
+      # build of @napi-rs/canvas (pulled in via pdfjs-dist). npm 10.x installs
+      # from it happily; npm 11.x treats the absent linux/darwin entries as the
+      # lockfile being out of sync and refuses. Upgrading before this step is
+      # what broke the job.
       - name: Install dependencies
         run: |
           set +e
@@ -106,6 +105,14 @@ jobs:
             grep -E "npm error" /tmp/ci.log | head -n 8               | while IFS= read -r line; do echo "::error::$line"; done
             exit "$status"
           fi
+
+      # Only now: npm's OIDC exchange for trusted publishing needs >= 11.5.1 and
+      # Node 22 bundles 10.x. Pinned to the 11.x line rather than `latest`, which
+      # is free to roll onto a major with different lockfile expectations.
+      - name: Use an npm that can do trusted publishing
+        run: |
+          npm install -g 'npm@^11.5.1'
+          echo "::notice::node $(node --version), npm $(npm --version)"
 
       - name: Release
         # Publishes to npm with a provenance attestation (requires id-token: write above).
