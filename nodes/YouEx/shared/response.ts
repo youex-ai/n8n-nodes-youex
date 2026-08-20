@@ -24,6 +24,9 @@ import {
  * fails to match an expected schema. A stricter shape check would have to know
  * what each of the 21 operations returns, and would turn every future field the
  * API adds into a node-side breakage.
+ *
+ * Verified from a real n8n: the same call that previously finished `success`
+ * carrying a page of markup now fails with the message below.
  */
 export async function assertApiResponse(
 	this: IExecuteSingleFunctions,
