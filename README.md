@@ -106,10 +106,10 @@ credentials.
 resolves `localhost` to IPv6 first, and a server listening only on IPv4 refuses the connection — the node
 reports it as the service being offline, which is a confusing way to learn about a DNS preference.
 
-**Get the Base URL wrong and Test is the thing that tells you.** A YouEx address without the integrations API
-answers with the web app instead — an HTML page, with a `200`. The credential test rejects that, but the
-operations themselves do not, so a workflow built on an untested credential can end up with markup where it
-expected records. Press Test.
+**Get the Base URL wrong and both the Test and the operations will tell you.** A YouEx address without the
+integrations API answers with the web app instead — an HTML page, with a `200`. The credential test rejects
+it, and since `0.1.3` so does every operation, rather than handing your workflow a page of markup where it
+expected records.
 
 ### Scopes
 
@@ -188,3 +188,4 @@ Tested against n8n 1.x on Node 22. Requires the YouEx integrations API (`/api/in
 | 0.1.0 | `YouEx API` credential, the `YouEx` node with 21 operations, and the `YouEx Trigger` node with 12 events |
 | 0.1.1 | No functional change. Publishing moved to npm trusted publishing (OIDC), removing the long-lived token from the release path |
 | 0.1.2 | The brand icons, replacing the placeholder artwork |
+| 0.1.3 | Operations now reject a response that did not come from the integrations API |

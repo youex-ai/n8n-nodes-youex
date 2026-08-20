@@ -25,8 +25,10 @@ import {
  * what each of the 21 operations returns, and would turn every future field the
  * API adds into a node-side breakage.
  *
- * Verified from a real n8n: the same call that previously finished `success`
- * carrying a page of markup now fails with the message below.
+ * Verified from a real n8n, both ways: the call that previously finished
+ * `success` carrying a page of markup now fails with the message below, and
+ * legitimate operations are untouched — including the list ones, whose
+ * `rootProperty` unwrapping runs after this and still sees its `records`.
  */
 export async function assertApiResponse(
 	this: IExecuteSingleFunctions,
